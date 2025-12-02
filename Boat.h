@@ -1,4 +1,6 @@
 #include <bits/stdc++.h>
+#ifndef BOAT_H
+#define BOAT_H
 
 struct Vector2D {
     double x, y;
@@ -97,22 +99,4 @@ private:
     }
 };
 
-int main() {
-    // масса в кг, длина в м, ширина в м, осадка в м, высота в м
-    BoatSimulator myBoat(5000.0, 10.0, 3.0, 1.0, 2.0);
-    double deltaTime = 0.01;
-	//векторы все в м/с
-    Vector2D windVelocity = {5.0, 2.0};
-    Vector2D currentVelocity = {1.0, 0.0};
-    Vector2D thrust = {500.0, 0.0};
-
-    for (int i = 0; i <= 10000; ++i) {
-        myBoat.update(deltaTime, windVelocity, currentVelocity, thrust);
-        
-        if (i % 100 == 0) {
-            std::cout << "Time: " << i * deltaTime << "s, Position: (" 
-                      << myBoat.position.x << ", " << myBoat.position.y << ") m, Velocity: ("
-                      << myBoat.velocity.x << ", " << myBoat.velocity.y << ") m/s" << std::endl;
-        }
-    }
-}
+#endif
