@@ -1,101 +1,107 @@
-#include <bits/stdc++.h>
+#include <iostream>
+#include <cmath>
+#include <algorithm>
+
 #ifndef BOAT_H
-#define BOAT_H
+#define BOAT_H 
 
 struct Vector2D {
     double x, y;
-
-    Vector2D operator+(const Vector2D& other) const {
-        return {x + other.x, y + other.y};
-    }
-    Vector2D operator-(const Vector2D& other) const {
-        return {x - other.x, y - other.y};
-    }
-    Vector2D operator*(double scalar) const {
-        return {x * scalar, y * scalar};
-    }
-    Vector2D operator/(double scalar) const {
-        return {x / scalar, y / scalar};
-    }
-    double magnitude() const {
-        return std::sqrt(x * x + y * y);
-    }
+    Vector2D operator+(const Vector2D& other) const { return {x + other.x, y + other.y}; }
+    Vector2D operator-(const Vector2D& other) const { return {x - other.x, y - other.y}; }
+    Vector2D operator*(double scalar) const { return {x * scalar, y * scalar}; }
+    double magnitude() const { return std::sqrt(x * x + y * y); }
 };
 
 class BoatSimulator {
 public:
-    double mass;          // масса (кг)
-    double length;        // длина (м)
-    double beam;          // ширина (м)
-    double height = 2.0; // высота (м)
-    double draft;         // осадка (м)
-
-    //плотности
-    const double waterDensity = 1025.0; // кг/м^3
-    const double airDensity = 1.225;   // кг/м^3
-
+    double mass, length, beam, draft, height;
     Vector2D position;
     Vector2D velocity;
+    double angle;           //угол судна в радианах
+    double angularVelocity;
+    
+    double virtualMassX, virtualMassY, virtualInertia;
+    const double waterDensity = 1025.0;
+    const double airDensity = 1.225;
 
-    double virtualMassX;
-    double virtualMassY;
-
-    BoatSimulator(double m, double L, double B, double T, double H) 
+    BoatSimulator(double m, double L, double B, double T, double H, double startAngleDegrees = 0.0, double startSpeed = 0.0) 
         : mass(m), length(L), beam(B), draft(T), height(H) {
-        virtualMassX = mass * (1.0 + 0.1); 
-        virtualMassY = mass * (1.0 + 0.8); 
-
+        
+        //начальный угол в радианы
+        angle = startAngleDegrees * 3.14159265358979323846 / 180.0;
+        
+        velocity.x = std::cos(angle) * startSpeed;
+        velocity.y = std::sin(angle) * startSpeed;
+        
         position = {0.0, 0.0};
-        velocity = {0.0, 0.0};
+        angularVelocity = 0.0;
+
+        virtualMassX = mass * 1.1;
+        virtualMassY = mass * 1.8;
+        double I = (mass * (length * length + beam * beam)) / 12.0;
+        virtualInertia = I * 1.4;
     }
 
-    void update(double deltaTime, Vector2D windVel, Vector2D currentVel, Vector2D thrustForce) {
-        
-        Vector2D relativeWaterVelocity = velocity - currentVel; 
-        Vector2D relativeWindVelocity = windVel - velocity;
+    void update(double deltaTime, double throttle, double rudderAngle, Vector2D windVel, Vector2D flowVel) {
+        Vector2D forward = { std::cos(angle), std::sin(angle) };
+        Vector2D right = { std::sin(angle), -std::cos(angle) };
 
-        Vector2D dragForce = calculateWaterDrag(relativeWaterVelocity);
-        Vector2D windForce = calculateWindForce(relativeWindVelocity);
+        //тяга двигателя по курсу
+        double maxThrust = mass * 0.02; 
+        Vector2D thrustForce = forward * (throttle * maxThrust);
 
+        //относительные скорости
+        Vector2D relWaterVel = velocity - flowVel;
+        Vector2D relWindVel = windVel - velocity;
+
+        //сопротивление
+        Vector2D dragForce = calculateWaterDrag(relWaterVel, forward, right);
+        Vector2D windForce = calculateWindForce(relWindVel, forward, right);
+
+        //вращение
+    	double speed = relWaterVel.magnitude();
+
+		double vWindSide = relWindVel.x * right.x + relWindVel.y * right.y;
+		double windTorque = vWindSide * std::abs(vWindSide) * airDensity * (length * height) * 0.1;
+
+		double rudderTorque = -rudderAngle * speed * (mass * 0.012) * length;
+		double dampingTorque = -angularVelocity * virtualInertia * (5.0 + speed);
+
+		double angularAcc = (rudderTorque + dampingTorque + windTorque) / virtualInertia;
+		angularVelocity += angularAcc * deltaTime;
+		angle += angularVelocity * deltaTime;
+
+        //движение
         Vector2D totalForce = thrustForce + dragForce + windForce;
-
+        
         Vector2D acceleration;
-        acceleration.x = totalForce.x / virtualMassX;
-        acceleration.y = totalForce.y / virtualMassY;
+		double unifiedMass = (virtualMassX + virtualMassY) / 2.0;
+		acceleration = totalForce * (1.0 / unifiedMass);
 
         velocity = velocity + acceleration * deltaTime;
         position = position + velocity * deltaTime;
-
+		velocity = velocity * (1.0 - 0.1 * deltaTime); 
     }
 
 private:
-    Vector2D calculateWaterDrag(Vector2D relVel) {
-		//коэфициенты сопротивления(примерные)
-        double Cd_x = 1.2; 
-        double Cd_y = 1.8;
-        
-        double areaX = beam * draft;
-        double areaY = length * draft;
+    Vector2D calculateWaterDrag(Vector2D relVel, Vector2D forward, Vector2D right) {
+    double vFwd = relVel.x * forward.x + relVel.y * forward.y;
+    double vSide = relVel.x * right.x + relVel.y * right.y;
 
-        Vector2D drag;
-        drag.x = -0.5 * waterDensity * areaX * Cd_x * relVel.x * std::abs(relVel.x);
-        drag.y = -0.5 * waterDensity * areaY * Cd_y * relVel.y * std::abs(relVel.y);
-        
-        return drag;
-    }
+    double forceFwd = -(0.5 * waterDensity * (beam * draft) * 1.0 * vFwd * std::abs(vFwd) + 100.0 * vFwd);
+    double forceSide = -(0.5 * waterDensity * (length * draft) * 2.5 * vSide * std::abs(vSide) + 2000.0 * vSide);
 
-    Vector2D calculateWindForce(Vector2D relWindVel) {
-		//коэфициент сопротивления воздуха (опять же примерный)
-        double Cd_air = 1.5; 
-        
-        double areaWindX = beam * (height - draft);
-        double areaWindY = length * (height - draft);
+    return (forward * forceFwd) + (right * forceSide);
+}
+    Vector2D calculateWindForce(Vector2D relWind, Vector2D forward, Vector2D right) {
+        double vFwd = relWind.x * forward.x + relWind.y * forward.y;
+        double vSide = relWind.x * right.x + relWind.y * right.y;
 
-        Vector2D windF;
-        windF.x = -0.5 * airDensity * areaWindX * Cd_air * relWindVel.x * std::abs(relWindVel.x);
-        windF.y = -0.5 * airDensity * areaWindY * Cd_air * relWindVel.y * std::abs(relWindVel.y);
+        double forceFwd = 0.5 * airDensity * (beam * (height - draft)) * 1.5 * vFwd * std::abs(vFwd);
+        double forceSide = 0.5 * airDensity * (length * (height - draft)) * 1.5 * vSide * std::abs(vSide);
 
-        return windF;
+        return (forward * forceFwd) + (right * forceSide);
     }
 };
 
