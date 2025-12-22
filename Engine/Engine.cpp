@@ -1,8 +1,7 @@
-#include "code.h"
+#include "Scripts.h"
 
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include <bits/stdc++.h>
+#include <iostream>
 
 const int TARGET_FPS = 60;
 const int FRAME_DELAY_MS = 1000 / TARGET_FPS;

@@ -25,8 +25,8 @@ public:
     const double waterDensity = 1025.0;
     const double airDensity = 1.225;
 
-    BoatSimulator(double m, double L, double B, double T, double H, double startAngleDegrees = 0.0, double startSpeed = 0.0) 
-        : mass(m), length(L), beam(B), draft(T), height(H) {
+    BoatSimulator(double m, double L, double B, double T, double H, Vector2D P, double startAngleDegrees = 0.0, double startSpeed = 0.0) 
+        : mass(m), length(L), beam(B), draft(T), height(H), position(P) {
         
         //начальный угол в радианы
         angle = startAngleDegrees * 3.14159265358979323846 / 180.0;
@@ -65,8 +65,8 @@ public:
 		double vWindSide = relWindVel.x * right.x + relWindVel.y * right.y;
 		double windTorque = vWindSide * std::abs(vWindSide) * airDensity * (length * height) * 0.1;
 
-		double rudderTorque = -rudderAngle * speed * (mass * 0.012) * length;
-		double dampingTorque = -angularVelocity * virtualInertia * (5.0 + speed);
+		double rudderTorque = -rudderAngle * speed * (mass * 0.01) * length;
+		double dampingTorque = -angularVelocity * virtualInertia * (7.0 + speed);
 
 		double angularAcc = (rudderTorque + dampingTorque + windTorque) / virtualInertia;
 		angularVelocity += angularAcc * deltaTime;
@@ -75,9 +75,13 @@ public:
         //движение
         Vector2D totalForce = thrustForce + dragForce + windForce;
         
-        Vector2D acceleration;
-		double unifiedMass = (virtualMassX + virtualMassY) / 2.0;
-		acceleration = totalForce * (1.0 / unifiedMass);
+		double forceFwdLocal = totalForce.x * forward.x + totalForce.y * forward.y;
+		double forceSideLocal = totalForce.x * right.x + totalForce.y * right.y;
+
+		double accFwd = forceFwdLocal / virtualMassX;
+		double accSide = forceSideLocal / virtualMassY;
+
+		Vector2D acceleration = (forward * accFwd) + (right * accSide);
 
         velocity = velocity + acceleration * deltaTime;
         position = position + velocity * deltaTime;
