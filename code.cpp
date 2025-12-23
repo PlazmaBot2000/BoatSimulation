@@ -59,7 +59,7 @@ int i = 0;
 //Вывод информации в консоль
 void info(){
 	std::cout << "Т=" << i*0.1 << "с | "
-		<< "Поз: (" << boat.position.x << ", " << boat.position.y << ") | "
+		<< "Позиция: (" << boat.position.x << ", " << boat.position.y << ") | "
 		<< "Штурвал: (" << Angle << ") | "
 		<< "Тяга: (" << Thrust << ") | "
 		<< "Курс: " << boat.angle * 180.0 / 3.14159265358979323846 << " град." << std::endl;
@@ -154,15 +154,14 @@ void start(SDL_Window *window, SDL_Renderer *renderer){
 }
 
 //то что выполняется каждый кадр
-void loop(SDL_Window *window, SDL_Renderer *renderer){
+int loop(SDL_Window *window, SDL_Renderer *renderer){
 	boatCollider.x = boat.position.x * 100;
 	boatCollider.y = boat.position.y * 100;
 	boatCollider.angle = boat.angle;
 	for (int j = 0; j < islandCount; j++){
 		if(boatCollider.checkCollision(Islands[j])){
 			std::cout << "THATS ALL";
-			SDL_DestroyRenderer(renderer);
-    		SDL_DestroyWindow(window);
+			return 1;
 		}
 	}
 
@@ -176,4 +175,5 @@ void loop(SDL_Window *window, SDL_Renderer *renderer){
 	Draw(window, renderer);
 	boatCollider.draw(renderer);
 	i++;
+	return 0;
 }

@@ -39,7 +39,9 @@ int main() {
 		}
 		SDL_RenderClear(renderer); // re-draw the window
 
-		loop(window, renderer);
+		if(loop(window, renderer) == 1){
+			game_is_running = false;
+		}
         SDL_RenderPresent(renderer);
 
 		int frameTime = SDL_GetTicks() - frameStart;
