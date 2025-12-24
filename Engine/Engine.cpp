@@ -39,7 +39,7 @@ int main() {
 		}
 		SDL_RenderClear(renderer); // re-draw the window
 
-		if(loop(window, renderer) == 1){
+		if(loop(window, renderer) != 0){
 			game_is_running = false;
 		}
         SDL_RenderPresent(renderer);

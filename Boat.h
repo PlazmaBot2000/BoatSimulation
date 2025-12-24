@@ -6,13 +6,6 @@
 #ifndef BOAT_H
 #define BOAT_H 
 
-/*struct Vector2D {
-    double x, y;
-    Vector2D operator+(const Vector2D& other) const { return {x + other.x, y + other.y}; }
-    Vector2D operator-(const Vector2D& other) const { return {x - other.x, y - other.y}; }
-    Vector2D operator*(double scalar) const { return {x * scalar, y * scalar}; }
-    double magnitude() const { return std::sqrt(x * x + y * y); }
-};*/
 
 class BoatSimulator {
 public:
