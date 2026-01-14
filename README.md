@@ -14,5 +14,5 @@ sudo chmod +x build.sh
 ```
 # How to build on windows with msys2
 ```
-./build.ps
+powershell -ep bypass -f ".\build.ps1"
 ```
