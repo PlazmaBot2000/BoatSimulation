@@ -4,6 +4,6 @@
 #define SCRIPTS_H
 
 int loop(SDL_Window *window, SDL_Renderer *renderer);
-void start(SDL_Window *window, SDL_Renderer *renderer);
+int start(SDL_Window *window, SDL_Renderer *renderer);
 
 #endif

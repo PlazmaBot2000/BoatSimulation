@@ -13,6 +13,8 @@ struct IslandData {
     std::vector<Collider> colliders;
 };
 
+const double RAD_TO_DEG = 180.0 / 3.141592653589793;
+
 const int ISLAND_WIDTH = 62;
 const int ISLAND_HEIGHT = 34;
 const int ISLAND_MULT = 3;
@@ -33,7 +35,7 @@ SDL_Texture* flowArrowTexture;
 SDL_Rect flowRect;
 SDL_Point flowCenter = { 32, 32 };
 
-auto config = toml::parse_file("config.toml");
+auto config = toml::parse_file("Assets/config.toml");
 
 BoatSimulator boat(config["ship"]["mass"].value_or(50000), config["ship"]["length"].value_or(10),
 		config["ship"]["beam"].value_or(3), config["ship"]["draft"].value_or(1), config["ship"]["height"].value_or(3),
@@ -224,8 +226,7 @@ void Draw(SDL_Window *window, SDL_Renderer *renderer) {
 
 
 
-//то что выполняется вначале программы
-void start(SDL_Window *window, SDL_Renderer *renderer){	
+int start(SDL_Window *window, SDL_Renderer *renderer){	
 	SDL_GetWindowSize(window, &WindowWidth, &WindowHeight);
 	ship = IMG_LoadTexture(renderer, "Assets/ship.png");	
 	island = IMG_LoadTexture(renderer, "Assets/Island.png");
@@ -242,32 +243,34 @@ void start(SDL_Window *window, SDL_Renderer *renderer){
 	flagRect = { WindowWidth - 155, WindowHeight - 112, 115, 112 };
 
 	GenIslands();
+	return 0;
 }
 
 
 int loop(SDL_Window *window, SDL_Renderer *renderer){
 	boatCollider.x = boat.position.x * 100;
 	boatCollider.y = boat.position.y * 100;
-	boatCollider.angle = boat.angle;
+	boatCollider.angle = boat.angle * RAD_TO_DEG;;
 	Draw(window, renderer);
 	for (int j = 0; j < Islands.size(); j++){ 
-        for(const auto& islandCollider : Islands[j].colliders) { // Доступ через .colliders
-			islandCollider.draw(renderer);
+        for(const auto& islandCollider : Islands[j].colliders) {
+			if(Logs) islandCollider.draw(renderer);
 		    if(boatCollider.checkCollision(islandCollider)){
-			    std::cout << "THATS ALL";
+			    std::cout << "END.";
 			    return 1;
 		    }
         }
 	}
 
-	//Считывание управления
 	Thrust = fmin(fmax(Thrust - Engine_GetAxis::Y() * 0.1, -5.0),5);
 	Angle = fmod(Angle - Engine_GetAxis::X() * ((Thrust > 0) ? 1.0 : ((Thrust < 0) ? -1.0 : 0.0)), 360.0);
 
 	boat.update(0.1 * timeScale, Thrust, Angle, wind, flow);
 	
-	if(Logs) info();
-	boatCollider.draw(renderer);
+	if(Logs) {
+		info();
+		boatCollider.draw(renderer);
+	}
 	i++;
 	return 0;
 }
