@@ -11,6 +11,8 @@ if (Test-Path "${PSScriptRoot}/Assets") {
 g++ *.cpp Engine/*.cpp -o "$dest/main.exe" `
     -I"C:/msys64/ucrt64/include/SDL2" `
     -L"C:/msys64/ucrt64/lib" `
-    -lmingw32 -lSDL2main -lSDL2 -lSDL2_image
+    -lmingw32 -lSDL2main `
+    -lSDL_FontCache -lSDL2_ttf -lSDL2_image -lSDL2 `
+    -std=gnu++20
 
 Write-Host "Build finished: $dest"

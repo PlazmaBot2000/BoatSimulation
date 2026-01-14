@@ -1,6 +1,8 @@
 # Dependencies:
 - SDL2
 - SDL2_Image
+- SDL2_ttf
+- FontCache
 - toml++
 - cmath
 - vector

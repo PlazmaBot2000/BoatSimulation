@@ -88,7 +88,7 @@ private:
     double vSide = relVel.x * right.x + relVel.y * right.y;
 
     double forceFwd = -(0.5 * waterDensity * (beam * draft) * 1.0 * vFwd * std::abs(vFwd) + 100.0 * vFwd);
-    double forceSide = -(0.5 * waterDensity * (length * draft) * 2.5 * vSide * std::abs(vSide) + 5000.0 * vSide);
+    double forceSide = -(0.5 * waterDensity * (length * draft) * 2.5 * vSide * std::abs(vSide) + 2000.0 * vSide);
 
     return (forward * forceFwd) + (right * forceSide);
 }

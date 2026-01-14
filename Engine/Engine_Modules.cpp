@@ -20,7 +20,7 @@ Vector2D Engine_GetAxis::All(){
 //Delay для использования в Update
 bool Engine_Delay(int time, int& Prev_Tick){
 	int diff = SDL_GetTicks() - Prev_Tick;
-	if(diff >= time){
+	if(diff >= time || Prev_Tick == 0){
 		Prev_Tick = SDL_GetTicks();
 		return true;
 	}

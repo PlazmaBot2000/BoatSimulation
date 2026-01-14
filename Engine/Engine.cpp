@@ -22,7 +22,7 @@ int main(int argc, char* argv[]) {
 
 
 	try {
-        Engine_Config = toml::parse_file("Assets/Engine_Config.toml");
+        Engine_Config = toml::parse_file("Assets/Config/Engine_Config.toml");
     } catch (const toml::parse_error& err) {
         std::cerr << "Error parsing file: " << err.description() << std::endl;
         std::cerr << "  Occurred at: " << err.source() << std::endl;
