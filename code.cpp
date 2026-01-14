@@ -81,6 +81,17 @@ std::string info() {
     );
 }
 
+std::string infostrings() {
+    return std::format(
+        "Т={:.1f}\nПозиция: ({:.1f}, {:.1f})\nШтурвал: ({:.1f})\nТяга: ({:.1f})\nКурс: {:.1f} град.",
+        i * 0.1,
+        boat.position.x, boat.position.y,
+        Angle,
+        Thrust,
+        boat.angle * 180.0 / 3.14159265358979323846
+    );
+}
+
 
 
 void loadFlagTextures(SDL_Renderer* renderer) {
@@ -241,6 +252,37 @@ void TableMenu(SDL_Window *window, SDL_Renderer *renderer, const char* Text) {
 }
 
 
+void cornerMenu(SDL_Window *window, SDL_Renderer *renderer, const char* Text) {
+    Uint8 oldR, oldG, oldB, oldA;
+
+    SDL_GetRenderDrawColor(renderer, &oldR, &oldG, &oldB, &oldA);
+
+	float textHeight = FC_GetHeight(DepartureMonoNerdFont, Text); 
+
+    SDL_Rect rect;
+	rect.w = WindowWidth / 5;
+    rect.x = WindowWidth - rect.w;
+    rect.y = 0;
+    rect.h = textHeight + 40;
+
+	SDL_SetRenderDrawColor(renderer, 102, 57, 49, 255);
+	SDL_RenderFillRect(renderer, &rect);
+
+	rect.x += 20;
+    rect.y += 20;
+    rect.w -= 40;
+    rect.h -= 40;
+
+    SDL_SetRenderDrawColor(renderer, 143, 86, 59, 255); 
+    SDL_RenderFillRect(renderer, &rect);
+
+    SDL_Rect centeredRect = { rect.x, 20, rect.w, (int)textHeight };
+    
+    FC_DrawBoxAlign(DepartureMonoNerdFont, renderer, centeredRect, FC_ALIGN_CENTER, Text);
+
+    SDL_SetRenderDrawColor(renderer, oldR, oldG, oldB, oldA);
+}
+
 
 int start(SDL_Window *window, SDL_Renderer *renderer){	
 	SDL_GetWindowSize(window, &WindowWidth, &WindowHeight);
@@ -301,6 +343,7 @@ int loop(SDL_Window *window, SDL_Renderer *renderer){
 	}	
 
 	if(game_is_running) {
+		cornerMenu(window, renderer, infostrings().c_str());
 		boat.update(0.1 * timeScale, Thrust, Angle, wind, flow);
 	} else {
 		if (!pause) {
