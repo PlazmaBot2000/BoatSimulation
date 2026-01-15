@@ -59,8 +59,8 @@ public:
 		double vWindSide = relWindVel.x * right.x + relWindVel.y * right.y;
 		double windTorque = vWindSide * std::abs(vWindSide) * airDensity * (length * height) * 0.1;
 
-		double rudderTorque = -rudderAngle * speed * (mass * 0.01) * length;
-		double dampingTorque = -angularVelocity * virtualInertia * (7.0 + speed);
+		double rudderTorque = -2 * rudderAngle * speed * (mass * 0.01) * length;
+		double dampingTorque = -angularVelocity * virtualInertia * (8.0 + speed);
 
 		double angularAcc = (rudderTorque + dampingTorque + windTorque) / virtualInertia;
 		angularVelocity += angularAcc * deltaTime;

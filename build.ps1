@@ -8,11 +8,18 @@ if (Test-Path "${PSScriptRoot}/Assets") {
     Copy-Item -Path "${PSScriptRoot}/Assets/*" -Destination "$dest/Assets" -Recurse -Force
 }
 
+$libs_string = C:\msys64\ucrt64\bin\pkg-config.exe --static --libs sdl2 SDL2_image SDL2_ttf
+
+$libs_array = $libs_string.Split(' ', [System.StringSplitOptions]::RemoveEmptyEntries)
+
 g++ *.cpp Engine/*.cpp -o "$dest/main.exe" `
+    -std=gnu++20 `
     -I"C:/msys64/ucrt64/include/SDL2" `
     -L"C:/msys64/ucrt64/lib" `
-    -lmingw32 -lSDL2main `
-    -lSDL_FontCache -lSDL2_ttf -lSDL2_image -lSDL2 `
-    -std=gnu++20
+    -static `
+    -lSDL_FontCache `
+    $libs_array `
+    -lstdc++ -lrpcrt4 `
+    "-Wl,--dynamicbase,--nxcompat,--high-entropy-va"
 
 Write-Host "Build finished: $dest"

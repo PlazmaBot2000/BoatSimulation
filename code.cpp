@@ -70,25 +70,14 @@ int i = 0;
 
 
 
-std::string info() {
+std::string info(std::string_view sep = " | ") {
     return std::format(
-        "Т={:.1f}с | Позиция: ({:.1f}, {:.1f}) | Штурвал: ({:.1f}) | Тяга: ({:.1f}) | Курс: {:.1f} град.",
-        i * 0.1,
-        boat.position.x, boat.position.y,
-        Angle,
-        Thrust,
-        boat.angle * 180.0 / 3.14159265358979323846
-    );
-}
-
-std::string infostrings() {
-    return std::format(
-        "Т={:.1f}\nПозиция: ({:.1f}, {:.1f})\nШтурвал: ({:.1f})\nТяга: ({:.1f})\nКурс: {:.1f} град.",
-        i * 0.1,
-        boat.position.x, boat.position.y,
-        Angle,
-        Thrust,
-        boat.angle * 180.0 / 3.14159265358979323846
+        "Т={:.1f}с{}{}: ({:.1f}, {:.1f}){}{}: {:.1f}{}{}: {:.1f}{}{}: {:.1f} град.",
+        i * 0.1,                          sep,
+        "Позиция", boat.position.x, boat.position.y, sep,
+        "Штурвал", Angle,                 sep,
+        "Тяга", Thrust,                   sep,
+        "Курс", boat.angle * 180.0 / 3.14159265358979
     );
 }
 
@@ -207,16 +196,8 @@ void Draw(SDL_Window *window, SDL_Renderer *renderer) {
     rect = {int(boat.position.x * 100), int(boat.position.y * 100), 180, 99};
     const double RAD_TO_DEG = 180.0 / 3.141592653589793;
     SDL_RenderCopyEx(renderer, ship, NULL, &rect, boat.angle * RAD_TO_DEG, &center, SDL_FLIP_NONE);
-
-    if(wind.x + wind.y != 0) SDL_RenderCopy(renderer, flagTextures[GetWindDirectionIndex(wind)], NULL, &flagRect);
-
-	if(flow.x != 0 || flow.y != 0) {
-    	double angleRad = atan2(flow.y, flow.x); 
-    	double angleDeg = (angleRad * 180.0 / 3.14159265358979323846) + 90; 
-    
-    	SDL_RenderCopyEx(renderer, flowArrowTexture, NULL, &flowRect, angleDeg, &flowCenter, SDL_FLIP_NONE);
-	}
 }
+
 
 void TableMenu(SDL_Window *window, SDL_Renderer *renderer, const char* Text) {
     Uint8 oldR, oldG, oldB, oldA;
@@ -284,6 +265,46 @@ void cornerMenu(SDL_Window *window, SDL_Renderer *renderer, const char* Text) {
 }
 
 
+void FlagsMenu(SDL_Window *window, SDL_Renderer *renderer) {
+    Uint8 oldR, oldG, oldB, oldA;
+
+    SDL_GetRenderDrawColor(renderer, &oldR, &oldG, &oldB, &oldA);
+
+    SDL_Rect identificatorsRect;
+	rect.w = WindowWidth / 5;
+    rect.h = WindowHeight / 6;
+    rect.x = WindowWidth - rect.w;
+    rect.y = WindowHeight - rect.h;
+
+	SDL_SetRenderDrawColor(renderer, 102, 57, 49, 255);
+	SDL_RenderFillRect(renderer, &rect);
+
+	rect.x += 20;
+    rect.y += 20;
+    rect.w -= 40;
+    rect.h -= 40;
+
+    SDL_SetRenderDrawColor(renderer, 143, 86, 59, 255); 
+    SDL_RenderFillRect(renderer, &rect);
+
+    flagRect = {rect.x, WindowHeight - rect.h - 20, rect.w / 3, rect.w / 3 };
+
+    if(wind.x + wind.y != 0) SDL_RenderCopy(renderer, flagTextures[GetWindDirectionIndex(wind)], NULL, &flagRect);
+
+	if(flow.x != 0 || flow.y != 0) {
+    	double angleRad = atan2(flow.y, flow.x); 
+    	double angleDeg = (angleRad * 180.0 / 3.14159265358979323846) + 90; 
+    
+    	SDL_RenderCopyEx(renderer, flowArrowTexture, NULL, &flowRect, angleDeg, &flowCenter, SDL_FLIP_NONE);
+	}
+    /*SDL_Rect centeredRect = { rect.x, 20, rect.w, (int)textHeight };
+    
+    FC_DrawBoxAlign(DepartureMonoNerdFont, renderer, centeredRect, FC_ALIGN_CENTER, Text);*/
+
+    SDL_SetRenderDrawColor(renderer, oldR, oldG, oldB, oldA);
+}
+
+
 int start(SDL_Window *window, SDL_Renderer *renderer){	
 	SDL_GetWindowSize(window, &WindowWidth, &WindowHeight);
 
@@ -302,8 +323,6 @@ int start(SDL_Window *window, SDL_Renderer *renderer){
 	SDL_SetRenderDrawColor(renderer, 99, 155, 255, 255);
 	boatCollider.width = 180;
 	boatCollider.height = 99;
-
-	flagRect = { WindowWidth - 155, WindowHeight - 112, 115, 112 };
 
 	GenIslands();
 	return 0;
@@ -328,22 +347,34 @@ int loop(SDL_Window *window, SDL_Renderer *renderer){
 	}
 
 	Thrust = fmin(fmax(Thrust - Engine_GetAxis::Y() * 0.1, -5.0),5);
-	Angle = fmod(Angle - Engine_GetAxis::X() * ((Thrust > 0) ? 1.0 : ((Thrust < 0) ? -1.0 : 0.0)), 360.0);
+    Angle = std::clamp(Angle - (Engine_GetAxis::X() * ((Thrust > 0) ? 1.0 : ((Thrust < 0) ? -1.0 : 0.0))), -70.0, 70.0);
 
-	if(Logs) {
-		std::cout << info() << std::endl;
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+        if (event.type == SDL_QUIT || 
+           (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE)) {
+            return 1;
+        }
+        if (event.type == SDL_MOUSEWHEEL) {
+            float sensitivity = 5.0f;
+            Angle = std::clamp(Angle + event.wheel.y * sensitivity, -70.0, 70.0);
+        }
+        if (event.type == SDL_KEYDOWN) {
+            if (event.key.keysym.sym == SDLK_p) {
+                game_is_running = !game_is_running;
+			    pause = !pause;
+            }
+        }
+    }
+
+	
+    if(Logs) {
+		std::cout << info("|") << std::endl;
 		boatCollider.draw(renderer);
 	}
-	
-	if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_P]) {
-    	if (Engine_Delay(500, Prev_Tick)) {
-			game_is_running = !game_is_running;
-			pause = !pause;
-		}
-	}	
 
 	if(game_is_running) {
-		cornerMenu(window, renderer, infostrings().c_str());
+		cornerMenu(window, renderer, info("\n").c_str());
 		boat.update(0.1 * timeScale, Thrust, Angle, wind, flow);
 	} else {
 		if (!pause) {
@@ -352,6 +383,8 @@ int loop(SDL_Window *window, SDL_Renderer *renderer){
 			TableMenu(window, renderer, "Пауза");
 		}
 	}
+
+    FlagsMenu(window, renderer);
 		
 	i++;
 	return 0;

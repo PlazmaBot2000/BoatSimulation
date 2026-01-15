@@ -19,6 +19,7 @@ int main(int argc, char* argv[]) {
     #endif
 
     std::setlocale(LC_ALL, ".UTF8");
+    SetProcessDPIAware();
 
 
 	try {
@@ -62,25 +63,21 @@ int main(int argc, char* argv[]) {
 	bool game_is_running = true;
 	if(start(window, renderer) != 0) game_is_running = false;
 
-    while (game_is_running) { // main game loop
-		Uint32 frameStart = SDL_GetTicks();
+    while (game_is_running) {
+        Uint32 frameStart = SDL_GetTicks();
 
-		SDL_Event event; // handle window closing
-		while (SDL_PollEvent(&event) != 0) {
-			if (SDL_QUIT==event.type || (SDL_KEYDOWN==event.type && SDLK_ESCAPE==event.key.keysym.sym))
-				game_is_running = false; // quit
-		}
-		SDL_RenderClear(renderer); // re-draw the window
+        SDL_RenderClear(renderer);
 
-		if(loop(window, renderer) != 0){
-			game_is_running = false;
-		}
+        if (loop(window, renderer) != 0) {
+            game_is_running = false;
+        }
+
         SDL_RenderPresent(renderer);
 
-		int frameTime = SDL_GetTicks() - frameStart;
-		if (FRAME_DELAY_MS > frameTime) {
+        int frameTime = SDL_GetTicks() - frameStart;
+        if (FRAME_DELAY_MS > frameTime) {
             SDL_Delay(FRAME_DELAY_MS - frameTime);
-        }
+            }
     }
 
     SDL_DestroyRenderer(renderer);
