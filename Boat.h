@@ -28,7 +28,6 @@ public:
         velocity.x = std::cos(angle) * startSpeed;
         velocity.y = std::sin(angle) * startSpeed;
         
-        position = {0.0, 0.0};
         angularVelocity = 0.0;
 
         virtualMassX = mass * 1.1;

@@ -13,6 +13,7 @@ $libs_string = C:\msys64\ucrt64\bin\pkg-config.exe --static --libs sdl2 SDL2_ima
 $libs_array = $libs_string.Split(' ', [System.StringSplitOptions]::RemoveEmptyEntries)
 
 g++ *.cpp Engine/*.cpp -o "$dest/main.exe" `
+    -mconsole `
     -std=gnu++20 `
     -I"C:/msys64/ucrt64/include/SDL2" `
     -L"C:/msys64/ucrt64/lib" `

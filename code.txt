@@ -60,8 +60,8 @@ BoatSimulator boat(
     config["ship"]["beam"].value_or(3),
     config["ship"]["draft"].value_or(1),
     config["ship"]["height"].value_or(3),
-    {config["ship"]["startPosition"]["X"].value_or(0.0) / 100, config["ship"]["startPosition"]["Y"].value_or(0.0) / 100},
-    config["ship"]["startAngle"].value_or(0.0),
+    {50.0, 50.0},
+    0.0,
     config["ship"]["startSpeed"].value_or(0.0)
 );
 
@@ -442,7 +442,7 @@ int loop(SDL_Window *window, SDL_Renderer *renderer){
 
     if (boatCollider.checkCollision(finish)) {    
         if (f == false) {
-            finalTime = std::to_string(SDL_GetTicks());
+            finalTime = std::to_string(i * 0.1);
         }
 
         std::string message = "Игра окончена. Ваше время: " + finalTime;

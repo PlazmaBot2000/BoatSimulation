@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
         int frameTime = SDL_GetTicks() - frameStart;
         if (FRAME_DELAY_MS > frameTime) {
             SDL_Delay(FRAME_DELAY_MS - frameTime);
-            }
+        }
     }
 
     SDL_DestroyRenderer(renderer);
